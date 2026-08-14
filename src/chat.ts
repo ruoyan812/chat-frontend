@@ -1,3 +1,4 @@
+const WORKER_HOST = "https://api.chat.812669.xyz";
 import { WS_URL } from "./config";
 
 export function connectChat(
