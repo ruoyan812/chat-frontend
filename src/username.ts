@@ -23,10 +23,6 @@ const WORDS: string[] = [
   "frosty", "cosmic", "magic", "lucky", "neon", "crystal",
 ];
 
-// ---------- 工具函数 ----------
-function pickRandom<T>(arr: T[]): T {
-  return arr[Math.floor(Math.random() * arr.length)];
-}
 
 function randomNumber(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;

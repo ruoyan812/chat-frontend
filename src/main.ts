@@ -1,4 +1,5 @@
-import { connectChat, send, ChatMessage } from "./chat";
+import { connectChat, send } from "./chat";
+import type { ChatMessage } from "./chat";
 import { generateUsername } from "./username";
 import "./style.css";
 
@@ -40,6 +41,9 @@ rerollBtn.addEventListener("click", () => {
   nameEl.value = generateUsername();
 });
 
+// ---------- API 基础地址 ----------
+const API_BASE = "https://api.chat.812669.xyz";
+
 // ---------- 渲染消息 ----------
 function appendMessage(msg: ChatMessage, skipScroll = false) {
   const div = document.createElement("div");
@@ -69,24 +73,21 @@ const ws = connectChat((msg) => {
 // ---------- 在线人数轮询 ----------
 async function fetchOnlineCount() {
   try {
-    const res = await fetch(`${WS_URL.replace("wss://", "https://").replace("/ws/room/demo", "")}/online/demo`);
+    const res = await fetch(`${API_BASE}/online/demo`);
     const data = await res.json();
     onlineNumEl.textContent = String(data.online ?? "-");
   } catch {
     onlineNumEl.textContent = "?";
   }
 }
-const WS_URL = "wss://api.chat.812669.xyz/ws/room/demo";
-// 每 5 秒刷新
 fetchOnlineCount();
 setInterval(fetchOnlineCount, 5000);
 
 // ---------- 加载历史消息 ----------
 async function loadHistory() {
   try {
-    const res = await fetch(`${WS_URL.replace("wss://", "https://").replace("/ws/room/demo", "")}/history/demo`);
+    const res = await fetch(`${API_BASE}/history/demo`);
     const data = await res.json();
-    const oldScroll = messagesEl.scrollTop;
     for (const msg of data.messages ?? []) {
       appendMessage(msg, true);
     }

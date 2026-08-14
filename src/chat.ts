@@ -1,5 +1,5 @@
-const WORKER_HOST = "https://api.chat.812669.xyz";
-import { WS_URL } from "./config";
+// src/chat.ts
+const WS_URL = "wss://api.chat.812669.xyz/ws/room/demo";
 
 export function connectChat(
   onMessage: (msg: ChatMessage) => void
@@ -8,13 +8,6 @@ export function connectChat(
 
   ws.onopen = () => {
     console.log("✅ WebSocket connected");
-    // 连上后发一条加入通知
-    send(ws, {
-      type: "system",
-      user: "System",
-      text: "connected!",
-      time: Date.now(),
-    });
   };
 
   ws.onmessage = (e) => {
@@ -22,7 +15,6 @@ export function connectChat(
       const msg: ChatMessage = JSON.parse(e.data);
       onMessage(msg);
     } catch {
-      // 如果不是 JSON（比如你后端现在直接 send(text)），包一层
       onMessage({
         type: "chat",
         user: "Anonymous",
