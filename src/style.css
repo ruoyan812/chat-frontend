@@ -1,55 +1,18 @@
-.chat-container {
-  max-width: 600px;
-  margin: 2rem auto;
-  font-family: system-ui, sans-serif;
-}
-.messages {
-  height: 400px;
-  overflow-y: auto;
-  border: 1px solid #ddd;
-  padding: 1rem;
-  margin-bottom: 0.5rem;
-  border-radius: 8px;
-}
-.msg {
-  margin-bottom: 0.5rem;
-  padding: 0.3rem 0.6rem;
-  border-radius: 6px;
-}
-.msg.chat {
-  background: #f0f4ff;
-}
-.msg.system {
-  background: #fff3cd;
-  font-style: italic;
-  font-size: 0.85rem;
-}
-.msg .user {
-  font-weight: 600;
-  margin-right: 0.5rem;
-}
-.msg .time {
-  font-size: 0.75rem;
-  color: #888;
-}
-.msg .text {
-  margin-top: 0.2rem;
-}
-#form {
-  display: flex;
-  gap: 0.5rem;
-}
-#form input {
-  flex: 1;
-  padding: 0.5rem;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-}
-#form button {
-  padding: 0.5rem 1rem;
-  border: none;
-  background: #2563eb;
-  color: white;
-  border-radius: 6px;
-  cursor: pointer;
-}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: system-ui, sans-serif; background: #f5f5f5; padding: 1rem; }
+.chat-container { max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; padding: 1rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+h2 { font-size: 1.2rem; }
+.online-badge { font-size: 0.85rem; color: #555; display: flex; align-items: center; gap: 0.3rem; }
+.dot { width: 8px; height: 8px; background: #22c55e; border-radius: 50%; display: inline-block; }
+.messages { height: 350px; overflow-y: auto; border: 1px solid #eee; border-radius: 8px; padding: 0.8rem; margin-bottom: 0.8rem; }
+.msg { margin-bottom: 0.5rem; padding: 0.4rem 0.6rem; border-radius: 6px; font-size: 0.9rem; }
+.msg.chat { background: #f0f4ff; }
+.msg.system { background: #fff3cd; font-style: italic; font-size: 0.8rem; }
+.msg .user { font-weight: 600; margin-right: 0.5rem; }
+.msg .time { font-size: 0.7rem; color: #999; }
+.msg .text { margin-top: 0.2rem; }
+.input-row { display: flex; gap: 0.5rem; margin-bottom: 0.5rem; }
+.input-row input { flex: 1; padding: 0.5rem; border: 1px solid #ddd; border-radius: 6px; }
+.input-row button { padding: 0.5rem 1rem; border: none; background: #2563eb; color: white; border-radius: 6px; cursor: pointer; }
+#reroll { background: #6b7280; padding: 0.5rem; }
