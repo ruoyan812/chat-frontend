@@ -55,8 +55,11 @@ const app = document.querySelector<HTMLDivElement>("#app")!;
 app.innerHTML = `
   <div class="chat-container">
     <div class="header">
-      <h2>SECURE_CHAT // ROOT</h2>
-      <span class="online-badge"><span class="dot"></span><span id="online-num">-</span> ONLINE</span>
+      <h2>SECURE_CHAT // YANVERSE // ROOT</h2>
+      <div class="header-right">
+        <span class="online-badge"><span class="dot"></span><span id="online-num">-</span> ONLINE</span>
+        <a href="https://page.roooooyan.work" rel="noopener noreferrer" class="home-btn" title="返回主页">⌂ HOME</a>
+      </div>
     </div>
     <div class="messages" id="messages"></div>
     <form id="form">

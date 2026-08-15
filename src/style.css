@@ -110,6 +110,40 @@ body {
   50%     { opacity: 0.4; transform: scale(0.8); }
 }
 
+/* ========== 头部右侧容器 ========== */
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+/* ========== 返回主页按钮 ========== */
+.home-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.6rem;
+  font-size: 0.72rem;
+  color: #00ff41;
+  text-decoration: none;
+  border: 1px solid rgba(0,255,65,0.4);
+  border-radius: 3px;
+  background: rgba(0,255,65,0.05);
+  letter-spacing: 1px;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.home-btn:hover {
+  background: #00ff41;
+  color: #0a0a0a;
+  box-shadow: 0 0 12px rgba(0,255,65,0.5);
+}
+
+.home-btn:active {
+  transform: scale(0.95);
+}
+
 /* ========== 消息区 ========== */
 .messages {
   flex: 1;
