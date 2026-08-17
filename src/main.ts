@@ -117,9 +117,6 @@ const API_BASE = "https://api.chat.812669.xyz";
 
 // ========== 渲染消息 ==========
 function appendMessage(msg: ChatMessage, skipScroll = false) {
-  // 忽略 register 类型的消息（不渲染）
-  if (msg.type === "register") return;
-  
   const div = document.createElement("div");
   div.className = `msg ${msg.type}`;
   const time = new Date(msg.time).toLocaleTimeString();
@@ -131,19 +128,36 @@ function appendMessage(msg: ChatMessage, skipScroll = false) {
 }
 
 // ========== WebSocket ==========
+// 用 sessionStorage 判断是否刷新
 const SESSION_KEY = "chat_ws_session";
 const isRefresh = sessionStorage.getItem(SESSION_KEY) !== null;
 sessionStorage.setItem(SESSION_KEY, "1");
 
 const ws = connectChat(appendMessage, () => {
-  // 新会话才发 register（刷新不发）
+  // 连接成功后发 join（刷新时不发）
   if (!isRefresh) {
     send(ws, {
-      type: "register",
-      user: nameEl.value.trim() || "Anonymous",
-      text: "",
+      type: "system",
+      user: "System",
+      text: `${nameEl.value.trim() || "Anonymous"} joined`,
       time: Date.now(),
     });
+  }
+});
+
+// ========== 离开通知 ==========
+// 用 pagehide 事件（比 beforeunload 更可靠）
+window.addEventListener("pagehide", (event) => {
+  // persisted 为 true 表示是 bfcache（后退/前进），不是真正关闭
+  if (!event.persisted && !isRefresh) {
+    try {
+      send(ws, {
+        type: "system",
+        user: "System",
+        text: `${nameEl.value.trim() || "Anonymous"} left`,
+        time: Date.now(),
+      });
+    } catch {}
   }
 });
 
