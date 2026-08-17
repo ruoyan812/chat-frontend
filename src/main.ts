@@ -34,9 +34,20 @@ const nameEl = document.getElementById("name") as HTMLInputElement;
 const inputEl = document.getElementById("input") as HTMLInputElement;
 const rerollBtn = document.getElementById("reroll") as HTMLButtonElement;
 const onlineNumEl = document.getElementById("online-num") as HTMLSpanElement;
-
-nameEl.value = generateUsername();
-rerollBtn.addEventListener("click", () => { nameEl.value = generateUsername(); });
+const STORAGE_KEY = "chat_username";
+const saved = localStorage.getItem(STORAGE_KEY);
+if (saved) {
+  nameEl.value = saved;
+} else {
+  const newName = generateUsername();
+  localStorage.setItem(STORAGE_KEY, newName);
+  nameEl.value = newName;
+}
+rerollBtn.addEventListener("click", () => {
+  const newName = generateUsername();
+  localStorage.setItem(STORAGE_KEY, newName);
+  nameEl.value = newName;
+});
 
 const API_BASE = "https://api.chat.812669.xyz";
 
