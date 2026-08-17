@@ -9,9 +9,11 @@ app.innerHTML = `
   <div class="chat-container">
     <div class="header">
       <h2>SECURE_CHAT // ROOT</h2>
+      <link rel="icon" href="https://chat.812669.xyz/favicon.svg">
       <div class="header-right">
         <span class="online-badge"><span class="dot"></span><span id="online-num">-</span> ONLINE</span>
-        <a href="https://page.roooooyan.work" target="_blank" rel="noopener noreferrer" class="home-btn" title="返回主页">⌂ HOME</a>
+        <a href="https://api.chat.812669.xyz/admin" rel="noopener noreferrer" class="home-btn" title="管理后台">⚙️ ADMIN</a>
+        <a href="https://page.roooooyan.work" rel="noopener noreferrer" class="home-btn" title="返回主页">🏠 HOME</a>
       </div>
     </div>
     <div class="messages" id="messages"></div>
