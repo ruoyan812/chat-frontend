@@ -3,26 +3,11 @@ import type { ChatMessage } from "./chat";
 import { generateUsername } from "./username";
 import "./style.css";
 
-console.log("🚀 main.ts started");
-
-// ========== 安全获取导航类型（正确写法）==========
-function isPageRefresh(): boolean {
-  try {
-    // 用 correct 的 API：performance.getEntriesByName 或直接取 type
-    const nav = performance.getEntriesByType("navigation")[0] as any;
-    // PerformanceNavigationTiming 里字段叫 "type"，但类型定义可能缺失
-    // 用 any 强取，避免编译后拿不到
-    const t = nav?.type;
-    console.log("🔍 navigation type:", t);
-    return t === "reload";
-  } catch (e) {
-    console.warn("navigation API failed:", e);
-    return false;
-  }
-}
-
-const isRefresh = isPageRefresh();
-console.log("🔄 isRefresh:", isRefresh);
+// ========== 用 sessionStorage 判断是否刷新 ==========
+const SESSION_KEY = "chat_active_session";
+const isRefresh = sessionStorage.getItem(SESSION_KEY) !== null;
+// 标记当前会话（刷新时会保留这个标记）
+sessionStorage.setItem(SESSION_KEY, "1");
 
 // ========== DOM ==========
 const app = document.querySelector<HTMLDivElement>("#app");
@@ -121,7 +106,6 @@ try {
   }
 } catch (e) {
   nameEl.value = generateUsername();
-  console.error("localStorage error:", e);
 }
 
 rerollBtn.addEventListener("click", () => {
@@ -151,25 +135,19 @@ function appendMessage(msg: ChatMessage, skipScroll = false) {
 
 // ========== WebSocket 连接 ==========
 const ws = connectChat(appendMessage, () => {
-  // 刷新时不发 join
   if (!isRefresh) {
-    console.log("📢 sending join (not a refresh)");
     send(ws, {
       type: "system",
       user: "System",
       text: `${nameEl.value.trim() || "Anonymous"} joined`,
       time: Date.now(),
     });
-  } else {
-    console.log("🔇 skip join (refresh)");
   }
 });
 
 // ========== 离开通知 ==========
 window.addEventListener("beforeunload", () => {
-  // 刷新时不发 leave
   if (!isRefresh) {
-    console.log("📢 sending leave (not a refresh)");
     try {
       send(ws, {
         type: "system",
@@ -178,8 +156,6 @@ window.addEventListener("beforeunload", () => {
         time: Date.now(),
       });
     } catch {}
-  } else {
-    console.log("🔇 skip leave (refresh)");
   }
 });
 
