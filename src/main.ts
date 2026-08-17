@@ -3,6 +3,7 @@ import type { ChatMessage } from "./chat";
 import { generateUsername } from "./username";
 import "./style.css";
 
+console.log("🚀 main.ts started");
 // ========== 安全获取导航类型 ==========
 function isPageRefresh(): boolean {
   try {
@@ -22,7 +23,8 @@ if (!app) {
   document.body.innerHTML = '<p style="color:red;font-family:monospace">Error: #app not found</p>';
   throw new Error("#app element missing in index.html");
 }
-
+console.log("📦 app element:", app);
+console.log("✏️ about to set innerHTML");
 app.innerHTML = `
   <div class="chat-container">
     <div class="header">
@@ -46,7 +48,7 @@ app.innerHTML = `
     </form>
   </div>
 `;
-
+console.log("✅ innerHTML set, container:", document.querySelector(".chat-container"));
 const messagesEl = document.getElementById("messages") as HTMLDivElement;
 const formEl = document.getElementById("form") as HTMLFormElement;
 const nameEl = document.getElementById("name") as HTMLInputElement;
