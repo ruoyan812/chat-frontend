@@ -145,14 +145,15 @@ function appendMessage(msg: ChatMessage, skipScroll = false) {
 }
 
 // ========== 连接 + 加入/离开（刷新不发通知）==========
-const isRefresh = isPageRefresh();
+const navEntry = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming;
+const isRefresh = navEntry?.type === "reload";
 
 const ws = connectChat(appendMessage, () => {
   if (!isRefresh) {
     send(ws, {
       type: "system",
       user: "System",
-      text: `${nameEl.value.trim() || "Anonymous"} joined`,
+      text: `${nameEl.value.trim() || generateUsername()} joined`,
       time: Date.now(),
     });
   }
@@ -160,14 +161,12 @@ const ws = connectChat(appendMessage, () => {
 
 window.addEventListener("beforeunload", () => {
   if (!isRefresh) {
-    try {
-      send(ws, {
-        type: "system",
-        user: "System",
-        text: `${nameEl.value.trim() || "Anonymous"} left`,
-        time: Date.now(),
-      });
-    } catch {}
+    send(ws, {
+      type: "system",
+      user: "System",
+      text: `${nameEl.value.trim() || generateUsername()} left`,
+      time: Date.now(),
+    });
   }
 });
 
