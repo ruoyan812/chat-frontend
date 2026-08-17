@@ -51,11 +51,11 @@ function appendMessage(msg: ChatMessage, skipScroll = false) {
 }
 
 const ws = connectChat(appendMessage, () => {
-  send(ws, { type: "system", user: nameEl.value.trim() || generateUsername(), text: `${nameEl.value.trim() || generateUsername()} joined`, time: Date.now() });
+  send(ws, { type: "system", user: "System", text: `${nameEl.value.trim() || generateUsername()} joined`, time: Date.now() });
 });
 
 window.addEventListener("beforeunload", () => {
-  send(ws, { type: "system", user: nameEl.value.trim() || generateUsername(), text: `${nameEl.value.trim() || generateUsername()} left`, time: Date.now() });
+  send(ws, { type: "system", user: "System", text: `${nameEl.value.trim() || generateUsername()} left`, time: Date.now() });
 });
 
 async function fetchOnline() {
