@@ -130,6 +130,20 @@ async function fetchOnline() {
 fetchOnline();
 setInterval(fetchOnline, 5000);
 
+async function loadHistory() {
+  try {
+    const res = await fetch(`${API_BASE}/history/demo`);
+    const data = await res.json();
+    for (const msg of data.messages ?? []) {
+      appendMessage(msg, true);
+    }
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  } catch (e) {
+    console.error("Failed to load history:", e);
+  }
+}
+loadHistory();   // ← 这行必须存在！
+
 // ========== 发送 ==========
 formEl.addEventListener("submit", (e) => {
   e.preventDefault();
