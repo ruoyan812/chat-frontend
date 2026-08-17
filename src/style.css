@@ -1,114 +1,209 @@
+/* ===== 全局重置 ===== */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
+/* ===== 黑客风 body ===== */
 body {
-  font-family: system-ui, -apple-system, sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  font-family: "Courier New", "Monaco", monospace;
+  background: #000;
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
 }
 
-.chat-container {
+/* ===== 矩阵雨 canvas ===== */
+#matrix {
+  position: fixed;
+  top: 0;
+  left: 0;
   width: 100%;
-  max-width: 640px;
-  background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-  overflow: hidden;
+  height: 100%;
+  z-index: 0;
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+/* ===== 扫描线 ===== */
+.scanline {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.15) 2px,
+    rgba(0, 0, 0, 0.15) 4px
+  );
+}
+
+/* ===== 暗角 ===== */
+.vignette {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.7) 100%);
+}
+
+/* ===== 聊天容器（居中）===== */
+.chat-container {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 720px;
+  max-height: 90vh;
+  margin: 0 1rem;
+  padding: 1rem;
   display: flex;
   flex-direction: column;
-  height: 90vh;
+  background: rgba(5, 10, 5, 0.92);
+  border: 1px solid #00ff41;
+  border-radius: 6px;
+  box-shadow: 0 0 20px rgba(0, 255, 65, 0.15);
+  color: #00ff41;
+  overflow: hidden;
 }
 
+/* ===== 头部 ===== */
 .header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem 1.2rem;
-  background: #2563eb;
-  color: #fff;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px solid #1a4a1a;
+  margin-bottom: 0.8rem;
 }
 
-.header h2 { font-size: 1.2rem; font-weight: 600; }
+.header h2 {
+  font-size: 1rem;
+  font-weight: normal;
+  text-shadow: 0 0 8px #00ff41;
+  letter-spacing: 1px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
 
 .online-badge {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  background: rgba(255,255,255,0.2);
-  padding: 0.3rem 0.7rem;
-  border-radius: 999px;
-  font-size: 0.85rem;
+  gap: 0.35rem;
+  background: rgba(0, 255, 65, 0.08);
+  border: 1px solid #1a4a1a;
+  padding: 0.2rem 0.6rem;
+  border-radius: 3px;
+  font-size: 0.75rem;
+  color: #00aa30;
 }
 
 .online-badge .dot {
-  width: 8px; height: 8px;
-  background: #4ade80;
+  width: 7px;
+  height: 7px;
+  background: #00ff41;
   border-radius: 50%;
-  animation: pulse 2s infinite;
+  animation: pulse 1.5s infinite;
 }
 
 @keyframes pulse {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
+  50% { opacity: 0.3; }
 }
 
+.home-btn {
+  font-size: 0.75rem;
+  color: #00aa30;
+  text-decoration: none;
+  border: 1px solid #1a4a1a;
+  padding: 0.2rem 0.5rem;
+  border-radius: 3px;
+  transition: all 0.2s;
+}
+
+.home-btn:hover {
+  border-color: #00ff41;
+  color: #00ff41;
+}
+
+/* ===== 消息区域 ===== */
 .messages {
   flex: 1;
   overflow-y: auto;
-  padding: 1rem;
-  background: #f8fafc;
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-height: 200px;
 }
 
+.messages::-webkit-scrollbar { width: 6px; }
+.messages::-webkit-scrollbar-track { background: rgba(0,20,0,0.3); }
+.messages::-webkit-scrollbar-thumb { background: #1a4a1a; border-radius: 3px; }
+
+/* ===== 单条消息 ===== */
 .msg {
-  margin-bottom: 0.6rem;
-  padding: 0.5rem 0.8rem;
-  border-radius: 10px;
-  max-width: 85%;
+  padding: 0.4rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  line-height: 1.4;
   animation: fadeIn 0.2s ease;
+  word-break: break-word;
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(4px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(3px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .msg.chat {
-  background: #eff6ff;
-  border-left: 3px solid #2563eb;
+  background: rgba(0, 30, 0, 0.5);
+  border-left: 2px solid #00ff41;
 }
 
 .msg.system {
-  background: #fef3c7;
+  background: rgba(0, 20, 0, 0.3);
   font-style: italic;
-  font-size: 0.82rem;
-  color: #92400e;
-  max-width: 100%;
+  font-size: 0.78rem;
+  color: #00aa30;
+  border-left: 2px solid #00aa30;
 }
 
 .msg .user {
-  font-weight: 700;
-  font-size: 0.82rem;
-  color: #1e40af;
+  font-weight: bold;
+  color: #00ccff;
+  margin-right: 0.4rem;
+}
+
+.msg.system .user {
+  color: #00aa30;
 }
 
 .msg .time {
   font-size: 0.7rem;
-  color: #94a3b8;
+  color: #1a4a1a;
   margin-left: 0.5rem;
 }
 
 .msg .text {
-  margin-top: 0.2rem;
-  word-break: break-word;
+  margin-top: 0.15rem;
   white-space: pre-wrap;
 }
 
+/* ===== 表单 ===== */
 #form {
-  padding: 0.8rem;
-  border-top: 1px solid #e2e8f0;
-  background: #fff;
+  padding-top: 0.8rem;
+  border-top: 1px solid #1a4a1a;
 }
 
 .input-row {
@@ -117,36 +212,49 @@ body {
   margin-bottom: 0.5rem;
 }
 
-.input-row:last-child { margin-bottom: 0; }
+.input-row:last-child {
+  margin-bottom: 0;
+}
 
 #form input {
   flex: 1;
-  padding: 0.6rem 0.8rem;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  font-size: 0.95rem;
+  padding: 0.5rem 0.7rem;
+  background: rgba(0, 15, 0, 0.6);
+  border: 1px solid #1a4a1a;
+  border-radius: 3px;
+  color: #00ff41;
+  font-family: "Courier New", monospace;
+  font-size: 0.9rem;
   outline: none;
   transition: border-color 0.2s;
 }
 
-#form input:focus { border-color: #2563eb; }
-
-#form button {
-  padding: 0.6rem 1.2rem;
-  border: none;
-  background: #2563eb;
-  color: #fff;
-  border-radius: 8px;
-  font-size: 0.95rem;
-  cursor: pointer;
-  transition: background 0.2s;
+#form input:focus {
+  border-color: #00ff41;
+  box-shadow: 0 0 6px rgba(0, 255, 65, 0.2);
 }
 
-#form button:hover { background: #1d4ed8; }
+#form input::placeholder {
+  color: #1a4a1a;
+}
+
+#form button {
+  padding: 0.5rem 1rem;
+  background: rgba(0, 255, 65, 0.08);
+  border: 1px solid #00ff41;
+  color: #00ff41;
+  border-radius: 3px;
+  font-family: "Courier New", monospace;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+#form button:hover {
+  background: rgba(0, 255, 65, 0.2);
+}
 
 #reroll {
-  padding: 0.6rem 0.8rem;
-  font-size: 1.1rem;
-  background: #f1f5f9;
-  border: 1px solid #cbd5e1;
+  padding: 0.5rem 0.7rem;
+  font-size: 1rem;
 }

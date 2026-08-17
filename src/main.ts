@@ -16,7 +16,7 @@ app.innerHTML = `
       <h2>SECURE_CHAT // ROOT</h2>
       <div class="header-right">
         <span class="online-badge"><span class="dot"></span><span id="online-num">-</span> ONLINE</span>
-        <a href="https://api.chat.812669.xyz/admin" rel="noopener noreferrer" class="home-btn" title="管理后台">⚙️ADMIN</a>
+        <a href="https://chat.812669.xyz/admin" rel="noopener noreferrer" class="home-btn" title="管理后台">⚙️ADMIN</a>
         <a href="https://page.roooooyan.work" rel="noopener noreferrer" class="home-btn" title="返回主页">🏠HOME</a>
       </div>
     </div>
@@ -117,7 +117,7 @@ const API_BASE = "https://api.chat.812669.xyz";
 
 // ========== 渲染消息 ==========
 function appendMessage(msg: ChatMessage, skipScroll = false) {
-  // 跳过 joined 消息（后端会自动广播，但前端不渲染 join/leave）
+  // 跳过 join 消息（避免刷屏）
   if (msg.type === "system" && (msg.text.includes("joined") || msg.text.includes("left"))) {
     return;
   }
@@ -125,23 +125,25 @@ function appendMessage(msg: ChatMessage, skipScroll = false) {
   const div = document.createElement("div");
   div.className = `msg ${msg.type}`;
   const time = new Date(msg.time).toLocaleTimeString();
-  div.innerHTML = `<span class="user"></span><span class="time">${time}</span><div class="text"></div>`;
-  div.querySelector(".user")!.textContent = msg.user;
+  div.innerHTML = `<span class="user"></span><span class="time"></span><div class="text"></div>`;
+  div.querySelector(".user")!.textContent = msg.user + ":";
+  div.querySelector(".time")!.textContent = time;
   div.querySelector(".text")!.textContent = msg.text;
   messagesEl.appendChild(div);
   if (!skipScroll) messagesEl.scrollTop = messagesEl.scrollHeight;
 }
 
-// ========== WebSocket（后端管 join，前端只发聊天）==========
+// ========== WebSocket ==========
 const ws = connectChat(appendMessage);
 
 // ========== 在线人数 ==========
 async function fetchOnline() {
   try {
-    const r = await fetch(`${API_BASE}/online/demo`);
+    const r = await fetch(`${API_BASE}/online/demo`, { mode: "cors" });
     const d = await r.json();
     onlineNumEl.textContent = String(d.online ?? "?");
-  } catch {
+  } catch (e) {
+    console.error("fetchOnline error:", e);
     onlineNumEl.textContent = "?";
   }
 }
@@ -151,9 +153,9 @@ setInterval(fetchOnline, 5000);
 // ========== 历史消息 ==========
 async function loadHistory() {
   try {
-    const res = await fetch(`${API_BASE}/history/demo`);
+    const res = await fetch(`${API_BASE}/history/demo`, { mode: "cors" });
     const data = await res.json();
-    for (const msg of data.messages ?? []) {
+    for (const msg of (data.messages ?? [])) {
       appendMessage(msg, true);
     }
     messagesEl.scrollTop = messagesEl.scrollHeight;
