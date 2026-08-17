@@ -2,75 +2,74 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 /* 确保 body 是全屏且居中的 Flex 容器 */
-body {
+html, body {
+  width: 100%;
+  height: 100%;
   margin: 0;
   padding: 0;
-  width: 100vw;
-  height: 100vh;
   overflow: hidden; /* 防止 body 出现滚动条 */
-  display: flex;
-  justify-content: center; /* 水平居中 */
-  align-items: flex-start; /* 垂直方向从顶部开始，配合 chat-container 的 margin-top 实现微距顶部居中 */
   background-color: #000; /* 兜底背景色 */
 }
 
-/* ========== 矩阵雨 canvas ========== */
-#matrix-canvas {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100vw; height: 100vh;
-  z-index: 0;
-  pointer-events: none;
+body {
+  display: flex;
+  justify-content: center; /* 水平居中 */
+  align-items: center;     /* 垂直居中 */
 }
 
-/* ========== 扫描线 ========== */
-.scanlines {
+/* ===== 背景层：矩阵雨、扫描线、暗角（必须处于底层） ===== */
+#matrix, .scanline, .vignette {
   position: fixed;
-  top: 0; left: 0;
-  width: 100vw; height: 100vh;
-  z-index: 1;
-  pointer-events: none;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;          /* 极低的层级 */
+  pointer-events: none; /* 防止遮挡鼠标点击 */
+}
+
+#matrix {
+  opacity: 0.4;
+}
+
+.scanline {
   background: repeating-linear-gradient(
     0deg,
-    rgba(0,0,0,0.15) 0px,
-    rgba(0,0,0,0.15) 1px,
-    transparent 1px,
-    transparent 3px
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.15) 2px,
+    rgba(0, 0, 0, 0.15) 4px
   );
 }
 
-/* ========== 暗角 ========== */
 .vignette {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100vw; height: 100vh;
-  z-index: 2;
-  pointer-events: none;
-  background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.7) 100%);
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.7) 100%);
 }
 
 
-/* ===== 聊天容器（居中显示） ===== */
+/* ===== 聊天容器 ===== */
 .chat-container {
   position: relative;
   z-index: 100;
   width: 100%;
   max-width: 720px;
-  max-height: 90vh; /* 限制最大高度为屏幕的 90%，防止内容过多时溢出屏幕 */
-  margin-top: 2rem; /* 距离顶部 2rem，实现视觉上的居中偏上 */
+  max-height: 90vh; /* 限制最大高度为屏幕的 90%，防止消息过多时溢出 */
+  
   padding: 1rem;
-  
-  /* 内部依然是 flex 布局，保证输入框在底部 */
-  display: flex;
-  flex-direction: column;
-  
   background: rgba(5, 10, 5, 0.95);
   border: 1px solid #00ff41;
   border-radius: 6px;
   box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
   color: #00ff41;
   
-  /* 允许内部滚动，防止消息过多撑破容器 */
+  /* 内部依然是 flex 布局，保证输入框在底部 */
+  display: flex;
+  flex-direction: column;
+  
+  /* 去掉之前的 margin: 2rem auto 和 margin-top，因为 body 已经负责整体居中了 */
+  margin: 0; 
+  
+  /* 允许内部滚动，防止聊天记录过多撑破容器 */
   overflow-y: auto; 
 }
 
