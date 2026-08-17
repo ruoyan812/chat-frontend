@@ -4,18 +4,25 @@ import { generateUsername } from "./username";
 import "./style.css";
 
 console.log("🚀 main.ts started");
-// ========== 安全获取导航类型 ==========
+
+// ========== 安全获取导航类型（正确写法）==========
 function isPageRefresh(): boolean {
   try {
-    const entries = performance.getEntriesByType("navigation");
-    if (entries.length > 0) {
-      const nav = entries[0] as PerformanceNavigationTiming;
-      return nav.type === "reload";
-    }
-  } catch {}
-  // 兜底：用 history.length 判断（刷新时 length 不变，新开页面 length=1）
-  return false;
+    // 用 correct 的 API：performance.getEntriesByName 或直接取 type
+    const nav = performance.getEntriesByType("navigation")[0] as any;
+    // PerformanceNavigationTiming 里字段叫 "type"，但类型定义可能缺失
+    // 用 any 强取，避免编译后拿不到
+    const t = nav?.type;
+    console.log("🔍 navigation type:", t);
+    return t === "reload";
+  } catch (e) {
+    console.warn("navigation API failed:", e);
+    return false;
+  }
 }
+
+const isRefresh = isPageRefresh();
+console.log("🔄 isRefresh:", isRefresh);
 
 // ========== DOM ==========
 const app = document.querySelector<HTMLDivElement>("#app");
@@ -23,8 +30,7 @@ if (!app) {
   document.body.innerHTML = '<p style="color:red;font-family:monospace">Error: #app not found</p>';
   throw new Error("#app element missing in index.html");
 }
-console.log("📦 app element:", app);
-console.log("✏️ about to set innerHTML");
+
 app.innerHTML = `
   <div class="chat-container">
     <div class="header">
@@ -48,7 +54,7 @@ app.innerHTML = `
     </form>
   </div>
 `;
-console.log("✅ innerHTML set, container:", document.querySelector(".chat-container"));
+
 const messagesEl = document.getElementById("messages") as HTMLDivElement;
 const formEl = document.getElementById("form") as HTMLFormElement;
 const nameEl = document.getElementById("name") as HTMLInputElement;
@@ -56,7 +62,7 @@ const inputEl = document.getElementById("input") as HTMLInputElement;
 const rerollBtn = document.getElementById("reroll") as HTMLButtonElement;
 const onlineNumEl = document.getElementById("online-num") as HTMLSpanElement;
 
-// ========== 矩阵雨（加 try-catch 防止炸整个页面）==========
+// ========== 矩阵雨 ==========
 try {
   const canvas = document.createElement("canvas");
   canvas.id = "matrix";
@@ -102,7 +108,7 @@ try {
   console.error("Overlay error:", e);
 }
 
-// ========== 用户名（localStorage 持久化）==========
+// ========== 用户名 ==========
 const STORAGE_KEY = "chat_username";
 try {
   const saved = localStorage.getItem(STORAGE_KEY);
@@ -114,7 +120,6 @@ try {
     nameEl.value = newName;
   }
 } catch (e) {
-  // localStorage 被禁用时 fallback
   nameEl.value = generateUsername();
   console.error("localStorage error:", e);
 }
@@ -129,7 +134,7 @@ rerollBtn.addEventListener("click", () => {
   }
 });
 
-// ========== API 地址 ==========
+// ========== API ==========
 const API_BASE = "https://api.chat.812669.xyz";
 
 // ========== 渲染消息 ==========
@@ -144,29 +149,37 @@ function appendMessage(msg: ChatMessage, skipScroll = false) {
   if (!skipScroll) messagesEl.scrollTop = messagesEl.scrollHeight;
 }
 
-// ========== 连接 + 加入/离开（刷新不发通知）==========
-const navEntry = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming;
-const isRefresh = navEntry?.type === "reload";
-
+// ========== WebSocket 连接 ==========
 const ws = connectChat(appendMessage, () => {
+  // 刷新时不发 join
   if (!isRefresh) {
+    console.log("📢 sending join (not a refresh)");
     send(ws, {
       type: "system",
       user: "System",
-      text: `${nameEl.value.trim() || generateUsername()} joined`,
+      text: `${nameEl.value.trim() || "Anonymous"} joined`,
       time: Date.now(),
     });
+  } else {
+    console.log("🔇 skip join (refresh)");
   }
 });
 
+// ========== 离开通知 ==========
 window.addEventListener("beforeunload", () => {
+  // 刷新时不发 leave
   if (!isRefresh) {
-    send(ws, {
-      type: "system",
-      user: "System",
-      text: `${nameEl.value.trim() || generateUsername()} left`,
-      time: Date.now(),
-    });
+    console.log("📢 sending leave (not a refresh)");
+    try {
+      send(ws, {
+        type: "system",
+        user: "System",
+        text: `${nameEl.value.trim() || "Anonymous"} left`,
+        time: Date.now(),
+      });
+    } catch {}
+  } else {
+    console.log("🔇 skip leave (refresh)");
   }
 });
 
