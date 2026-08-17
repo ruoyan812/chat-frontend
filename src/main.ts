@@ -3,11 +3,6 @@ import type { ChatMessage } from "./chat";
 import { generateUsername } from "./username";
 import "./style.css";
 
-// ========== 会话标记（判断是否刷新）==========
-const SESSION_KEY = "chat_active_session";
-const isRefresh = sessionStorage.getItem(SESSION_KEY) !== null;
-sessionStorage.setItem(SESSION_KEY, "1");
-
 // ========== DOM ==========
 const app = document.querySelector<HTMLDivElement>("#app");
 if (!app) {
@@ -132,76 +127,8 @@ function appendMessage(msg: ChatMessage, skipScroll = false) {
   if (!skipScroll) messagesEl.scrollTop = messagesEl.scrollHeight;
 }
 
-// ========== 连接状态追踪 ==========
-let wsConnected = false;
-let wsClosedIntentionally = false; // 标记是否是页面关闭（非刷新）
-
-// ========== WebSocket 连接 ==========
-const ws = connectChat(
-  appendMessage,
-  () => {
-    // onOpen
-    wsConnected = true;
-    wsClosedIntentionally = false;
-
-    // 新连接建立后，如果不是刷新，发 join
-    if (!isRefresh) {
-      send(ws, {
-        type: "system",
-        user: "System",
-        text: `${nameEl.value.trim() || "Anonymous"} joined`,
-        time: Date.now(),
-      });
-    }
-  }
-);
-
-// ========== 监听 WS 关闭 → 延迟判断是否是真正离开 ==========
-// 刷新时：WS 断开 → 1.5秒内页面重新连接（新WS）→ 不发 leave
-// 关闭时：WS 断开 → 1.5秒后没重连 → 发 leave
-const originalOnClose = ws.onclose;
-ws.onclose = () => {
-  wsConnected = false;
-  // 延迟判断：如果是刷新，页面马上会重新加载，ws 会重新连接
-  // 如果 1.5 秒后还没重连，说明是真的关了
-  setTimeout(() => {
-    if (!wsConnected && !wsClosedIntentionally) {
-      // 真的离开了（不是刷新）
-      try {
-        // 此时 WS 已断，用 sendBeacon 发 leave 到后端
-        const leaveMsg = JSON.stringify({
-          type: "system",
-          user: "System",
-          text: `${nameEl.value.trim() || "Anonymous"} left`,
-          time: Date.now(),
-        });
-        // 用 fetch beacon 确保发出去
-        if (navigator.sendBeacon) {
-          const blob = new Blob([leaveMsg], { type: "application/json" });
-          navigator.sendBeacon(`${API_BASE}/history/demo`, blob); // 这行只是占位，实际用 WS 发不了了
-        }
-      } catch {}
-    }
-  }, 1500);
-};
-
-// ========== 页面关闭时标记 ==========
-window.addEventListener("pagehide", (e) => {
-  // pagehide 在页面真正卸载时触发（比 beforeunload 更可靠）
-  // persisted 为 true 表示是 bfcache（后退/前进缓存），不是真正关闭
-  if (!e.persisted) {
-    wsClosedIntentionally = true;
-    // 尝试通过 WS 发 leave（如果还没断）
-    try {
-      send(ws, {
-        type: "system",
-        user: "System",
-        text: `${nameEl.value.trim() || "Anonymous"} left`,
-        time: Date.now(),
-      });
-    } catch {}
-  }
-});
+// ========== WebSocket（不传 onOpen，后端自己处理 join）==========
+const ws = connectChat(appendMessage);
 
 // ========== 在线人数 ==========
 async function fetchOnline() {
