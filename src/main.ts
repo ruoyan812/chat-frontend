@@ -117,6 +117,9 @@ const API_BASE = "https://api.chat.812669.xyz";
 
 // ========== 渲染消息 ==========
 function appendMessage(msg: ChatMessage, skipScroll = false) {
+  // 忽略 register 类型的消息（不渲染）
+  if (msg.type === "register") return;
+  
   const div = document.createElement("div");
   div.className = `msg ${msg.type}`;
   const time = new Date(msg.time).toLocaleTimeString();
@@ -127,8 +130,22 @@ function appendMessage(msg: ChatMessage, skipScroll = false) {
   if (!skipScroll) messagesEl.scrollTop = messagesEl.scrollHeight;
 }
 
-// ========== WebSocket（不传 onOpen，后端自己处理 join）==========
-const ws = connectChat(appendMessage);
+// ========== WebSocket ==========
+const SESSION_KEY = "chat_ws_session";
+const isRefresh = sessionStorage.getItem(SESSION_KEY) !== null;
+sessionStorage.setItem(SESSION_KEY, "1");
+
+const ws = connectChat(appendMessage, () => {
+  // 新会话才发 register（刷新不发）
+  if (!isRefresh) {
+    send(ws, {
+      type: "register",
+      user: nameEl.value.trim() || "Anonymous",
+      text: "",
+      time: Date.now(),
+    });
+  }
+});
 
 // ========== 在线人数 ==========
 async function fetchOnline() {
