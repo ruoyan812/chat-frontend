@@ -3,17 +3,33 @@ import type { ChatMessage } from "./chat";
 import { generateUsername } from "./username";
 import "./style.css";
 
-// ---------- DOM ----------
-const app = document.querySelector<HTMLDivElement>("#app")!;
+// ========== 安全获取导航类型 ==========
+function isPageRefresh(): boolean {
+  try {
+    const entries = performance.getEntriesByType("navigation");
+    if (entries.length > 0) {
+      const nav = entries[0] as PerformanceNavigationTiming;
+      return nav.type === "reload";
+    }
+  } catch {}
+  // 兜底：用 history.length 判断（刷新时 length 不变，新开页面 length=1）
+  return false;
+}
+
+// ========== DOM ==========
+const app = document.querySelector<HTMLDivElement>("#app");
+if (!app) {
+  document.body.innerHTML = '<p style="color:red;font-family:monospace">Error: #app not found</p>';
+  throw new Error("#app element missing in index.html");
+}
+
 app.innerHTML = `
   <div class="chat-container">
     <div class="header">
       <h2>SECURE_CHAT // ROOT</h2>
-      <link rel="icon" href="https://chat.812669.xyz/favicon.svg">
       <div class="header-right">
         <span class="online-badge"><span class="dot"></span><span id="online-num">-</span> ONLINE</span>
-        <a href="https://api.chat.812669.xyz/admin" rel="noopener noreferrer" class="home-btn" title="管理后台">⚙️ ADMIN</a>
-        <a href="https://page.roooooyan.work" rel="noopener noreferrer" class="home-btn" title="返回主页">🏠 HOME</a>
+        <a href="https://page.roooooyan.work" target="_blank" rel="noopener noreferrer" class="home-btn" title="返回主页">⌂ HOME</a>
       </div>
     </div>
     <div class="messages" id="messages"></div>
@@ -37,64 +53,83 @@ const inputEl = document.getElementById("input") as HTMLInputElement;
 const rerollBtn = document.getElementById("reroll") as HTMLButtonElement;
 const onlineNumEl = document.getElementById("online-num") as HTMLSpanElement;
 
-// ---------- 矩阵雨背景 ----------
-const canvas = document.createElement("canvas");
-canvas.id = "matrix";
-document.body.prepend(canvas);
-const ctx = canvas.getContext("2d")!;
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-const chars = "01アイウエオカキクケコサシスセソタチツテト0123456789ABCDEF";
-const fontSize = 14;
-const cols = Math.floor(canvas.width / fontSize);
-const drops: number[] = Array(cols).fill(1);
-function draw() {
-  ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = "#00ff41";
-  ctx.font = fontSize + "px monospace";
-  for (let i = 0; i < drops.length; i++) {
-    const text = chars[Math.floor(Math.random() * chars.length)];
-    ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-    if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
-    drops[i]++;
+// ========== 矩阵雨（加 try-catch 防止炸整个页面）==========
+try {
+  const canvas = document.createElement("canvas");
+  canvas.id = "matrix";
+  document.body.prepend(canvas);
+  const ctx = canvas.getContext("2d");
+  if (ctx) {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const chars = "01アイウエオカキクケコサシスセソタチツテト0123456789ABCDEF";
+    const fontSize = 14;
+    const cols = Math.floor(canvas.width / fontSize);
+    const drops: number[] = Array(cols).fill(1);
+    setInterval(() => {
+      ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#00ff41";
+      ctx.font = fontSize + "px monospace";
+      for (let i = 0; i < drops.length; i++) {
+        const text = chars[Math.floor(Math.random() * chars.length)];
+        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+        drops[i]++;
+      }
+    }, 50);
+    window.addEventListener("resize", () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
   }
+} catch (e) {
+  console.error("Matrix rain error:", e);
 }
-setInterval(draw, 50);
-window.addEventListener("resize", () => {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-});
 
-// ---------- 扫描线 + 暗角 ----------
-const scanline = document.createElement("div");
-scanline.className = "scanline";
-document.body.appendChild(scanline);
-const vignette = document.createElement("div");
-vignette.className = "vignette";
-document.body.appendChild(vignette);
+// ========== 扫描线 + 暗角 ==========
+try {
+  const scanline = document.createElement("div");
+  scanline.className = "scanline";
+  document.body.appendChild(scanline);
+  const vignette = document.createElement("div");
+  vignette.className = "vignette";
+  document.body.appendChild(vignette);
+} catch (e) {
+  console.error("Overlay error:", e);
+}
 
-// ---------- 用户名（localStorage 持久化） ----------
+// ========== 用户名（localStorage 持久化）==========
 const STORAGE_KEY = "chat_username";
-const saved = localStorage.getItem(STORAGE_KEY);
-if (saved) {
-  nameEl.value = saved;
-} else {
-  const newName = generateUsername();
-  localStorage.setItem(STORAGE_KEY, newName);
-  nameEl.value = newName;
+try {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    nameEl.value = saved;
+  } else {
+    const newName = generateUsername();
+    localStorage.setItem(STORAGE_KEY, newName);
+    nameEl.value = newName;
+  }
+} catch (e) {
+  // localStorage 被禁用时 fallback
+  nameEl.value = generateUsername();
+  console.error("localStorage error:", e);
 }
 
 rerollBtn.addEventListener("click", () => {
-  const newName = generateUsername();
-  localStorage.setItem(STORAGE_KEY, newName);
-  nameEl.value = newName;
+  try {
+    const newName = generateUsername();
+    localStorage.setItem(STORAGE_KEY, newName);
+    nameEl.value = newName;
+  } catch {
+    nameEl.value = generateUsername();
+  }
 });
 
-// ---------- API 基础地址 ----------
+// ========== API 地址 ==========
 const API_BASE = "https://api.chat.roooooyan.work";
 
-// ---------- 渲染消息 ----------
+// ========== 渲染消息 ==========
 function appendMessage(msg: ChatMessage, skipScroll = false) {
   const div = document.createElement("div");
   div.className = `msg ${msg.type}`;
@@ -106,16 +141,15 @@ function appendMessage(msg: ChatMessage, skipScroll = false) {
   if (!skipScroll) messagesEl.scrollTop = messagesEl.scrollHeight;
 }
 
-// ---------- 连接 + 加入/离开（刷新不发通知） ----------
-const navEntry = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming;
-const isRefresh = navEntry?.type === "reload";
+// ========== 连接 + 加入/离开（刷新不发通知）==========
+const isRefresh = isPageRefresh();
 
 const ws = connectChat(appendMessage, () => {
   if (!isRefresh) {
     send(ws, {
       type: "system",
       user: "System",
-      text: `${nameEl.value.trim() || generateUsername()} joined`,
+      text: `${nameEl.value.trim() || "Anonymous"} joined`,
       time: Date.now(),
     });
   }
@@ -123,16 +157,18 @@ const ws = connectChat(appendMessage, () => {
 
 window.addEventListener("beforeunload", () => {
   if (!isRefresh) {
-    send(ws, {
-      type: "system",
-      user: "System",
-      text: `${nameEl.value.trim() || generateUsername()} left`,
-      time: Date.now(),
-    });
+    try {
+      send(ws, {
+        type: "system",
+        user: "System",
+        text: `${nameEl.value.trim() || "Anonymous"} left`,
+        time: Date.now(),
+      });
+    } catch {}
   }
 });
 
-// ---------- 在线人数轮询 ----------
+// ========== 在线人数 ==========
 async function fetchOnline() {
   try {
     const r = await fetch(`${API_BASE}/online/demo`);
@@ -145,7 +181,7 @@ async function fetchOnline() {
 fetchOnline();
 setInterval(fetchOnline, 5000);
 
-// ---------- 加载历史消息 ----------
+// ========== 历史消息 ==========
 async function loadHistory() {
   try {
     const res = await fetch(`${API_BASE}/history/demo`);
@@ -160,14 +196,14 @@ async function loadHistory() {
 }
 loadHistory();
 
-// ---------- 发送消息 ----------
+// ========== 发送消息 ==========
 formEl.addEventListener("submit", (e) => {
   e.preventDefault();
   const text = inputEl.value.trim();
   if (!text) return;
   const msg: ChatMessage = {
     type: "chat",
-    user: nameEl.value.trim() || generateUsername(),
+    user: nameEl.value.trim() || "Anonymous",
     text,
     time: Date.now(),
   };
