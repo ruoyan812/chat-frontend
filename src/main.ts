@@ -14,6 +14,7 @@ app.innerHTML = `
   <div class="chat-container">
     <div class="header">
       <h2>SECURE_CHAT // ROOT</h2>
+      <link rel="icon" type="image/svg+xml" href="https://chat.812669.xyz/favicon.svg" />
       <div class="header-right">
         <span class="online-badge"><span class="dot"></span><span id="online-num">-</span> ONLINE</span>
         <a href="https://api.chat.812669.xyz/admin" rel="noopener noreferrer" class="home-btn" title="管理后台">⚙️ADMIN</a>
@@ -127,39 +128,8 @@ function appendMessage(msg: ChatMessage, skipScroll = false) {
   if (!skipScroll) messagesEl.scrollTop = messagesEl.scrollHeight;
 }
 
-// ========== WebSocket ==========
-// 用 sessionStorage 判断是否刷新
-const SESSION_KEY = "chat_ws_session";
-const isRefresh = sessionStorage.getItem(SESSION_KEY) !== null;
-sessionStorage.setItem(SESSION_KEY, "1");
-
-const ws = connectChat(appendMessage, () => {
-  // 连接成功后发 join（刷新时不发）
-  if (!isRefresh) {
-    send(ws, {
-      type: "system",
-      user: "System",
-      text: `${nameEl.value.trim() || "Anonymous"} joined`,
-      time: Date.now(),
-    });
-  }
-});
-
-// ========== 离开通知 ==========
-// 用 pagehide 事件（比 beforeunload 更可靠）
-window.addEventListener("pagehide", (event) => {
-  // persisted 为 true 表示是 bfcache（后退/前进），不是真正关闭
-  if (!event.persisted && !isRefresh) {
-    try {
-      send(ws, {
-        type: "system",
-        user: "System",
-        text: `${nameEl.value.trim() || "Anonymous"} left`,
-        time: Date.now(),
-      });
-    } catch {}
-  }
-});
+// ========== WebSocket（不发 join/leave，后端管）==========
+const ws = connectChat(appendMessage);
 
 // ========== 在线人数 ==========
 async function fetchOnline() {
