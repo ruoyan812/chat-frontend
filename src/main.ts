@@ -10,7 +10,7 @@ app.innerHTML = `
       <h2>SECURE_CHAT // ROOT</h2>
       <div class="header-right">
         <span class="online-badge"><span class="dot"></span><span id="online-num">-</span> ONLINE</span>
-        <a href="https://api.chat.roooooyan.work/admin" rel="noopener noreferrer" class="home-btn" title="管理后台">🤖 ADMIN</a>
+        <a href="https://api.chat.812669.xyz/admin" rel="noopener noreferrer" class="home-btn" title="管理后台">🤖 ADMIN</a>
         <a href="https://page.roooooyan.work" rel="noopener noreferrer" class="home-btn" title="返回主页">🏠 HOME</a>
       </div>
     </div>
